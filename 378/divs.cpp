@@ -21,10 +21,8 @@ ll num_divisors(ll n)
 }
 
 ll N = 60'000'000;
-// ll N = 1000;
 ll MOD = 1'000'000'000'000'000'000;
 vector<ll> divs(N + 1);
-vector<bool> parsed(N + 1);
 vector<ll> smallest_prime(N + 1);
 
 ll triangle_divs(ll n)
@@ -35,35 +33,14 @@ ll triangle_divs(ll n)
 
 int main()
 {
-    // SegmentTree s({3, 2, 0, 1, 5, 1}, 6);
-    // SegmentTree s(6); 
-    // s.update(1, 3);
-    // s.update(2, 2);
-    // s.update(3, 0);
-    // s.update(4, 1);
-    // s.update(5, 5);
-    // s.update(6, 1);
-    // cout << s.range_sum(0, 5) << "\n";
-    // cout << s.range_sum(0, 2) << "\n";
-    // cout << s.range_sum(0, 3) << "\n";
-    // cout << s.range_sum(4, 5) << "\n";
-    // for (int i = 0; i < 14; ++i)
-    // {
-    //     cout << s.get(i) << " ";
-    // }
-    // cout << "\n";
-
-    // return 0;
-    SegmentTree div_counts(23041);
-    SegmentTree pairs(23041);
     divs[1] = 1;
     ll result = 0;
+    // We need to calculate #divs for up to N + 1 to use triangle_divs
     for (ll i = 2; i <= N + 1; ++i)
     {
-        if (!parsed[i])
+        if (smallest_prime[i] == 0)
         {
             // Prime
-            parsed[i] = true;
             divs[i] = 2;
             
             for (ll j = i * i; j <= N + 1; j += i)
@@ -71,7 +48,6 @@ int main()
                 if (smallest_prime[j] == 0)
                 {
                     smallest_prime[j] = i;
-                    parsed[j] = true;
                 }
             }
         }
@@ -90,12 +66,22 @@ int main()
         }
     }
 
+    ll max_tri_div = 1;
+    for (ll i = 1; i <= N; ++i)
+    {
+        max_tri_div = max(max_tri_div, triangle_divs(i));
+    }
+
+    // i -> count of triangle numbers with i divisors
+    SegmentTree div_counts(max_tri_div + 1);
+    // i -> count of triangle numbers k with k < i but dT(k) > dT(i)
+    SegmentTree pairs(max_tri_div + 1);
     for (ll i = 1; i <= N; ++i)
     {
         div_counts.update(triangle_divs(i), 1, true);
-        ll bigger_divs = div_counts.range_sum(triangle_divs(i) + 1, 23040);
+        ll bigger_divs = div_counts.range_sum(triangle_divs(i) + 1, max_tri_div);
         pairs.update(triangle_divs(i), bigger_divs, true);
-        ll new_triples = pairs.range_sum(triangle_divs(i) + 1, 23040) % MOD;
+        ll new_triples = pairs.range_sum(triangle_divs(i) + 1, max_tri_div) % MOD;
         result = (result + new_triples) % MOD;
     }
 

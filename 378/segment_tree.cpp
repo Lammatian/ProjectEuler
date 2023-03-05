@@ -1,7 +1,6 @@
 #include "segment_tree.h"
 
 #include <cmath>
-#include <iostream>
 
 SegmentTree::SegmentTree(size_t size) : mSize(size), mTree(4*size)
 {
